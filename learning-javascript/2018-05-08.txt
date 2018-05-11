@@ -1,0 +1,5 @@
+AJAX:
+1. purpose?(what)
+2. mechanism?(why)
+3. what is AJAX?
+4. how to use AJAX?
