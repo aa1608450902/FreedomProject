@@ -1,0 +1,43 @@
+1.  OpenSession
+2.  CloseSession
+3.  GetInfo
+4.  ExecuteStatement
+5.  GetTypeInfo
+6.  GetCatalogs
+7.  GetSchemas
+8.  GetTables
+9.  GetTableTypes
+10. GetColumns
+11. GetFunctions
+12. GetOperationStatus
+13. CancelOperation
+14. CloseOperation
+15. GetResultSetMetadata
+16. FetchResults
+17. GetDelegationToken
+18. CancelDelegationToken
+19. RenewDelegationToken
+
+Hive Database
+1. data type
+整型 - TINYINT, SMALLINT, INT, BIGINT
+字符串类型 - CHAR, VARCHAR
+时间戳 - YYYY-MM-DD HH:MM:SS.fffffffff, YYYY-MM-DD HH:MM:ss.ffffffffff
+日期 - DATE值在年/月/日的格式形式描述 {{YYYY-MM-DD}}.
+小数点 - 
+
+
+
+1. create database
+2. drop database
+3. create table
+4. drop table
+5. load data
+
+
+
+
+
+
+
+

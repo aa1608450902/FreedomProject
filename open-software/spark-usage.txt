@@ -1,0 +1,5 @@
+1. 修改spark-env.sh文件
+2. 修改slaves文件
+3. 同步SparkWorker1和SparkWorker2的配置
+4. 启动Spark集群
+5. 启动hadoop的HDFS文件系统

@@ -1,0 +1,181 @@
+协程概念:
+1. 	协程与生成器都有yield。区别是，生成器产生数据，通常用于迭代。协程消费数据，使用数据。
+2. 	就像生成器函数一样，我们调用这个函数之后，它不会马上执行。
+	要想让协程正常运行，必须先对其调用一次next()或send(None)。这一步叫做启动协程。
+	由于这个步骤固定，且容易忘记，所以我们可以用装饰器来自动处理
+3. 	协程的应用场景：
+	协程是用户空间的线程，这种协作式任务调度可以让用户自己控制使用CPU的时间，除非自己放弃，否则不会被其他协程抢占CPU。
+	而线程和进程的调度由os决定，都需要内核调度。协程不需要内核参与，完全用户态，更加轻量级，占用内存少。
+4. 	协程是指一个过程，这个过程与调用方协作，产出由调用方提供的值。
+5. 	协程是一种用户空间的非抢占式线程，主要用来解决等待大量的IO操作的问题。
+	(单yield实现的生成器函数协程并不具有解决IO操作耗时问题，还得借助IOLoop)
+
+tornado中的协程:
+1. tornado中的协程实现基于python语言的Generator并且结合一个全局的调度器IOLoop，Generator通过函数装饰器coroutine和IOLoop进行通信。
+
+
+tornado程序接口说明
+	IOLoop.current() 返回当前线程的IOLoop实例。
+	IOLoop.start() 启动IOLoop实例的I/O循环,同时服务器监听被打开。
+
+
+tornado Future
+1.	Future封装了异步操作的结果。实际是它类似于在网页html前端中，图片异步加载的占位符，但加载后最终也是一个完整的图片。Future也是同样用处，tornado使用它，最终希望它被set_result,并且调用一些回调函数。
+	Future对象实际是coroutine函数装饰器和IOLoop的沟通使者，有着非常重要的作用。
+2. 	从这里我们可以看到Future类的重要作用。future.set_result起到的作用是: 
+	发送一个信号，告诉IOLoop去调度暂停的协程继续执行。
+
+IOLoop.spawn_callback
+Sometimes you may want to "fire and forget" a coroutine without waiting for its result. In this case it is recommended to use .IOLoop.spawn_callback, which makes the .IOLoop responsible for the call. If it fails, the .IOLoop will log a stack trace:
+有时候你可能想“不用等待它的结果”而“开火并忘记”一个协程。在这种情况下，建议使用.IOLoop.spawn_callback，它使得.IOLoop负责调用。如果失败，.IOLoop会记录堆栈跟踪：
+[https://github.com/tornadoweb/tornado/blob/master/docs/guide/coroutines.rst]
+
+
+协程使用示例:
+1. 计算fibonacci数列
+import sys
+ 
+def fibonacci(n): # 生成器函数 - 斐波那契
+    a, b, counter = 0, 1, 0
+    while True:
+        if (counter > n): 
+            return
+        yield a
+        a, b = b, a + b
+        counter += 1
+f = fibonacci(10) # f 是一个迭代器，由生成器返回生成
+ 
+while True:
+    try:
+        print (next(f), end=" ")
+    except StopIteration:
+        sys.exit()
+
+2. 使用协程实现简单的生产者-效果者模型.
+def consumer():
+    r = ''
+    while True:
+        n = yield r
+        if not n:return
+        print('consuming the event %s'%n)
+        r = '200 OK'
+
+def produce(c):
+    c.send(None)
+    for n in range(1,6):
+        print('producing event %s'%n)
+        r = c.send(n)
+        print('the consumer response %s'%r)
+    c.close()
+c = consumer()
+produce(c)
+
+3. 单连接访问数据库
+from __future__ import print_function
+
+from tornado import ioloop, gen
+import tornado_mysql
+
+@gen.coroutine
+def main():
+    conn = yield tornado_mysql.connect(host='127.0.0.1', port=3306, user='root', passwd='', db='mysql')
+    cur = conn.cursor()
+    yield cur.execute("SELECT Host,User FROM user")
+    print(cur.description)
+    for row in cur:
+       print(row)
+    cur.close()
+    conn.close()
+
+ioloop.IOLoop.current().run_sync(main)
+
+4. 线程池访问数据库
+#!/usr/bin/env python
+from __future__ import print_function
+
+from tornado import ioloop, gen
+from tornado_mysql import pools
+
+
+pools.DEBUG = True
+
+
+POOL = pools.Pool(
+    dict(host='127.0.0.1', port=3306, user='root', passwd='', db='mysql'),
+    max_idle_connections=1,
+    max_recycle_sec=3)
+
+
+@gen.coroutine
+def worker(n):
+    for i in range(10):
+        t = 1
+        print(n, "sleeping", t, "seconds")
+        cur = yield POOL.execute("SELECT SLEEP(%s)", (t,))
+        print(n, cur.fetchall())
+
+
+@gen.coroutine
+def main():
+    workers = [worker(i) for i in range(10)]
+    yield workers
+
+
+ioloop.IOLoop.current().run_sync(main)
+print(POOL._opened_conns)
+
+5. 这里有一个最简单的协程代码
+def simple_coroutine():
+    print('-> start')
+    x = yield
+    print('-> recived', x)
+
+sc = simple_coroutine()
+
+next(sc)
+sc.send('zhexiao')
+
+6. tornado 协程示例
+import tornado.ioloop
+from tornado.gen import coroutine
+from tornado.concurrent import Future
+
+@coroutine
+def asyn_sum(a, b):
+    print("begin calculate:sum %d+%d"%(a,b))
+    future = Future()
+
+    def callback(a, b):
+        print("calculating the sum of %d+%d:"%(a,b))
+        future.set_result(a+b)
+    tornado.ioloop.IOLoop.instance().add_callback(callback, a, b)
+
+    result = yield future
+
+    print("after yielded")
+    print("the %d+%d=%d"%(a, b, result))
+
+def main():
+    asyn_sum(2,3)
+    tornado.ioloop.IOLoop.instance().start()
+
+if __name__ == "__main__":
+    main()
+
+7. tornado web编程示例
+import tornado.web
+import tornado.ioloop
+
+class IndexHandler(tornado.web.RequestHandler):
+    """主路由处理类"""
+    def get(self):
+        """对应http的get请求方式"""
+        self.write("Hello Python Tornado!")
+
+if __name__ == "__main__":
+    app = tornado.web.Application([
+        (r"/", IndexHandler),
+    ])
+    app.listen(8000)
+    tornado.ioloop.IOLoop.current().start()
+

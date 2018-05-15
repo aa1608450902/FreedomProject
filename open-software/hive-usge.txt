@@ -1,0 +1,70 @@
+Hive Usage
+
+1. The common usage
+	step 1. create database(optional)
+	step 2. create table
+	step 3. load data from local file system to Hive
+			or 
+			load data from HDFS to Hive
+	step 4. analyze and query
+
+2. HiveQL
+	1. create table
+	usage: CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.] table_name
+			[(col_name data_type [COMMENT col_comment], ...)]
+			[COMMENT table_comment]
+			[ROW FORMAT row_format]
+			[STORED AS file_format]
+
+	2. load data
+	usage: LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)]
+
+	3. partition
+	4. bucket
+	...
+
+	Use case:
+		step 1. create table
+			HiveQL: CREATE TABLE IF NOT EXISTS employee ( eid int, name String, salary String, destination String) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n' STORED AS TEXTFILE;
+					COMMENT ‘Employee details’
+					ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' LINES TERMINATED BY '\n' STORED AS TEXTFILE;
+
+		step 2. load data from local system (file in form of textfile)
+			local file: /home/user/sample.txt
+			1201  Gopal       45000    Technical manager
+			1202  Manisha     45000    Proof reader
+			1203  Masthanvali 40000    Technical writer
+			1204  Kiran       40000    Hr Admin
+			1205  Kranthi     30000    Op Admin
+			HiveQL: LOAD DATA LOCAL INPATH '/home/user/sample.txt' OVERWRITE INTO TABLE employee;
+
+
+3. Note
+	Hive file format: textfile, sequencefile, rcfile, orc, (custom)
+
+	注意：
+	只有TEXTFILE表能直接加载数据，必须，本地load数据，和external外部表直接加载运路径数据，都只能用TEXTFILE表。
+	更深一步，hive默认支持的压缩文件（hadoop默认支持的压缩格式），也只能用TEXTFILE表直接读取。
+	其他格式不行。可以通过TEXTFILE表加载后insert到其他表中。  换句话说，SequenceFile、RCFile表不能直接加载数据，数据要先导入到textfile表，再从textfile表通过insert select from 导入到SequenceFile,RCFile表。
+	SequenceFile、RCFile表的源文件不能直接查看，在hive中用select看。
+	RCFile源文件可以用 hive --service rcfilecat /xxxxxxxxxxxxxxxxxxxxxxxxxxx/000000_0查看，但是格式不同，很乱。
+
+	相比TEXTFILE和SEQUENCEFILE，RCFILE由于列式存储方式，数据加载时性能消耗较大，但是具有较好的压缩比和查询响应。数据仓库的特点是一次写入、多次读取，因此，整体来看，RCFILE相比其余两种格式具有较明显的优势。
+
+4. Common statements
+	CREATE TABLE IF NOT EXISTS employee4 ( eid int, name String, salary String, destination String) ROW FORMAT DELIMITED FIELDS TERMINATED 		BY '\t' LINES TERMINATED BY '\n' STORED AS ORCFILE;
+	
+	insert overwrite table employee3 select * from employee;
+	
+	load data inpath '/output' overwrite into table employee5;
+	
+	insert overwrite directory '/output' select * from employee3;
+
+	set hive.input.format=org.apache.hadoop.hive.ql.io.RCFileInputFormat;
+
+	LOAD DATA INPATH '/hivetohdfs/rsdir/000000_0' OVERWRITE INTO TABLE employeerc;
+
+
+
+
+	12

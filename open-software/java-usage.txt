@@ -1,0 +1,21 @@
+java命令使用
+1. 使用`java -jar xxx.jar`命令来运行jar包程序
+2. `java -jar xxx.jar`运行某个jar程序时，需要在jar包中的META-INFO->MANIFEST.MF文件中指定jar包依赖(classpath)
+	META-INFO->MANIFEST.MF文件内容如下：
+	Manifest-Version: 1.0
+	Archiver-Version: Plexus Archiver
+	Built-By: wangxu
+	X-Compile-Target-JDK: 1.7
+	Created-By: Apache Maven 3.3.3
+	Build-Jdk: 1.8.0_45
+	Main-Class: com.yuewen.statistics.report.service.Main
+	Class-Path: lib/commons-io-2.4.jar lib/commons-lang3-3.4.jar
+3. 除了使用以上方法指定依赖jar包外，还可以通过java命令参数-Djava.ext.dirs来指定依赖jar路径
+	note:一旦参数-Djava.ext.dirs被指定，那么它将覆盖之前的环境变量(-Djava.ext.dirs=$JAVA_HOME/jre/lib/ext)
+	正确地写法是-Djava.ext.dirs=./plugin:$JAVA_HOME/jre/lib/ext(冒号分隔)
+4. 除此之外，java命令参数-cp也可以用来加在依赖的jar包(java类)
+	-cp 和 -classpath 一样，是指定类运行所依赖其他类的路径，通常是类库，jar包之类，需要全路径到jar包
+	usage: java -cp .;c:\classes\myClass.jar;d:\classes\*.jar packname.mainclassname
+	window上分号“;”分隔，linux上是分号“:”分隔。
+
+其实，这些变量都是影响的 -> ExtClassLoader加载器(jvm)

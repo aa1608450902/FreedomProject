@@ -1,0 +1,81 @@
+mysql command
+1. service
+<1>. systemctl start mariadb  	#启动MariaDB
+<2>. systemctl stop mariadb  	#停止MariaDB
+<3>. systemctl restart mariadb  #重启MariaDB
+<4>. systemctl enable mariadb  	#设置开机启动
+
+2. configurate USER and PASSWORD
+<1>. mysql			#mysql是客户端
+<2>. mysql -u root 	#无密码登录
+<3>. grant all privileges on *.* to 'root'@'localhost' identified by 'root' with grant option;
+					#root用户授权
+<4>. CREATE USER 'hive'@'localhost' IDENTIFIED BY '123456';
+					#创建hive用户(这条命令没有用到)
+<5>. GRANT ALL PRIVILEGES ON *.* TO hive IDENTIFIED BY '123456'  WITH GRANT OPTION;
+					#为hive用户赋予权限(这条命令没有用到)
+<6>. mysql -u root -p 	#赋予密码登陆
+
+3. DATABASE operate
+<1>. SHOW DATABASES;
+<2>. CREATE DATABASE hive;
+<3>. DROP DATABASE hive;	
+<4>. USE hive; 				#选中并使用hive数据库
+<5>. SHOW TABLES;
+
+============
+
+Hive安装和部署
+1. source env.sh
+------------
+export JAVA_HOME
+export HADOOP_HOME
+export HIVE_HOME
+export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HIVE_HOME/bin
+------------
+2. schematool -initSchema -dbType derby/postgres/mysql
+3. hive --service hiveserver2 或者 $HIVE_HOME/bin/hiveserver2
+4. hive --service metastore -v  # -v参数是显示启动过程
+		#这是启动metastore，启动hiveserver2时没有使用。
+{使用PostgreSQL作为元数据库的时候使用过的命令，有的没有用
+	5. cp $JAVA_HOME/lib/tools.jar $HIVE_HOME/lib
+	6. cd apache-hive-2.3.2-bin.tar.gz\apache-hive-2.3.2-bin\scripts\metastore\upgrade\postgres
+	7. psql -U netmonsys -d netmon -h 127.0.0.1 -f hive-schema-2.3.0.postgres.sql
+}#### set postgres as metastore ####
+
+ 
+
+
+#常见问题
+1. Duplicate key name 'PCS_STATS_IDX'
+这个错误是因为，执行schematool -initSchema -dbType mysql的时候，hive数据库表里已经存在表了，所以在库里把所有的表都删除了，再执行命令。
+
+2. 无法加载hive-site.xml文件
+在运行hiveserver2前，需要初始化meta database，执行命令schematool -initSchema -dbType mysql
+
+3. mysql数据库问题，找不到socket文件问题
+一定要先运行mysql数据库，在centos7上，mysql叫MariaDB；启动MariaDB服务后在运行mysql客户端(/usr/bin/mysql)。
+
+4. thrift API连接不上hiveserver2服务
+在hive-site.xml配置文件中，重设hive.server2.authentication参数为NOSASL，默认的是NONE。
+
+============
+
+beeline
+beeline客户端支持远程模式和本地模式。
+ps: 在远程模式中，hiveserver2仅仅只支持thrift认证的连接。甚至HTTP模式中，这个消息的body也要包含thrift. 
+ps: 使用没有安全认证的beeline连接，如果你想通过 NOSASL模式连接，你必须明确的指定认证模式
+1. !connect jdbc:hive2://localhost:10000/hive;auth=noSasl xiaojun 123456 org.apache.hive.jdbc.HiveDriver
+	#NOSASL mode
+2. 
+
+============
+
+Thrift
+1. thrift -r -gen java Hello.thrift
+
+
+
+
+
+

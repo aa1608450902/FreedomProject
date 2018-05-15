@@ -1,0 +1,17 @@
+maven由本地仓库和远程仓库
+加入一些依赖之后，如果本地仓库没有，它会到maven远程仓库下载；也就是第一次引入jar包时，它会到远程仓库下载；
+如果要引入其他项目依赖，那么就得将其他项目打包，安装到本地仓库，再在本项目中引入；通过项目的groupid,artificialid,version三个参数指定。
+
+mvn compile #生成target及项目的class文件
+mvn package #将项目编译好的class文件打成jar包
+mvn package -Dmaven.test.skip=true	#除去test部分的代码
+mvn install #将项目生成的jar加入到本地maven仓库(只在项目依赖时使用)
+
+pom.xml文件的最简形式：
+	<groupid>
+	<artificialid>
+	<version>
+	上面三个是指明自己的信息
+	<dependencies>
+	下面就指定依赖的信息
+
