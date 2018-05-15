@@ -1,5 +1,25 @@
 several important Questions:
+
 1. 进程是怎样转移控制权的？
+
 2. 保护模式下，内存互不干扰是怎样实现的？
     多任务 + 虚拟内存技术的实现(段地址 + 偏移地址)
-计算机内部寄存器可视化
+
+#. 计算机内部寄存器可视化
+
+3. linux内核的main起点？
+答: linux kernel的c程序由汇编直接调用，汇编级别不存在main函数起点。
+早期Linux内核引导代码只有bootsect.s、setup.s、head.s这3个文件，由Linus亲手写的。
+
+#. 将c语言汇编成汇编代码，查看汇编代码结构。
+c语言编译成汇编后，程序也会被分成 1. 数据段 2. 代码段 3. 
+
+linux kernel constitution:
+1. system call
+2. 中断
+
+linux kernel's several classic Questions:
+
+1. linux系统的启动过程
+
+2. system_call的过程
