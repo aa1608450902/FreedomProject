@@ -1,0 +1,5 @@
+site_name: Dai.JPro
+pages:
+    - cpp: learning-cpp.md
+    - scala: scala-sbt-usage.md
+theme: readthedocs
