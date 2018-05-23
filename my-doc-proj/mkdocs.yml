@@ -3,7 +3,9 @@ pages:
     - cpp: learning-cpp.md
     - scala: scala-sbt-usage.md
     - python: python.md
-    - data analysis: data-analysis.md
+    - algorithm: algorithm.md
     - kernel: kernel.md
     - compile: compilation.md
+    - data analysis: data-analysis.md
+    - mathematics: mathematics.md
 theme: readthedocs
