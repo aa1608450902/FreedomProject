@@ -105,3 +105,14 @@ gcc 的-D 选项测试
 
 # template
 ---
+purpose:
+
+# std algorithm
+**1. std::nth_element**  
+Description:  
+将第n_thn_th 元素放到它该放的位置上，左边元素都小于它，右边元素都大于它.  
+Usage:  
+```
+    vector<int> vec = {...};
+    nth_element(vec.begin(), vec.begin() + 6, vec.end());
+```
